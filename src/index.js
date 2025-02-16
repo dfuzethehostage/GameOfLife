@@ -4,8 +4,8 @@ const container = document.querySelector(".canvas-container");
 
 // Setze Canvas-Größe
 let lineWidth = 2;
-let gridHeight = 10;
-let gridWidth = 30;
+let gridHeight = 40;
+let gridWidth = 60;
 canvas.height = container.clientHeight;
 canvas.width = container.clientHeight * (gridWidth / gridHeight);
 container.clientWidth = canvas.width;
@@ -47,71 +47,45 @@ function drawGrid() {
 
 drawGrid();
 
-let dragging = false;
-let lastX;
-let lastY;
-let marginLeft = 0;
-let marginRight = 0;
-let marginTop = 0;
-let marginBottom = 0;
+var scale = 1,
+  panning = false,
+  pointX = 0,
+  pointY = 0,
+  start = { x: 0, y: 0 };
 
-canvas.addEventListener(
-  "mousedown",
-  function (e) {
-    var evt = e || event;
-    dragging = true;
-    lastX = evt.clientX;
-    lastY = evt.clientY;
-    e.preventDefault();
-  },
-  false
-);
+function setTransform() {
+  console.log(pointX, pointY);
+  canvas.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
+}
 
-container.addEventListener(
-  "mousemove",
-  function (e) {
-    var evt = e || event;
-    if (dragging) {
-      let deltaX = evt.clientX - lastX;
-      lastX = evt.clientX;
-      marginLeft += deltaX;
-      canvas.style.marginLeft = marginLeft + "px";
+canvas.onmousedown = function (e) {
+  e.preventDefault();
+  start = { x: e.clientX - pointX, y: e.clientY - pointY };
+  panning = true;
+};
 
-      let deltaY = evt.clientY - lastY;
-      lastY = evt.clientY;
-      if (deltaY > 0) {
-        if (marginTop != 0) {
-          marginTop += deltaY;
-        } else {
-          marginBottom -= deltaY;
-          if (marginBottom < 0) {
-            marginTop -= marginBottom;
-            marginBottom = 0;
-          }
-        }
-      } else if (deltaY < 0) {
-        if (marginBottom != 0) {
-          marginBottom -= deltaY;
-        } else {
-          marginTop += deltaY;
-          if (marginTop < 0) {
-            marginBottom -= marginTop;
-            marginTop = 0;
-          }
-        }
-      }
-      canvas.style.marginTop = marginTop + "px";
-      canvas.style.marginBottom = marginBottom + "px";
-    }
-    e.preventDefault();
-  },
-  false
-);
+window.onmouseup = function (e) {
+  panning = false;
+};
 
-window.addEventListener(
-  "mouseup",
-  function () {
-    dragging = false;
-  },
-  false
-);
+container.onmousemove = function (e) {
+  e.preventDefault();
+  if (!panning) {
+    return;
+  }
+  pointX = e.clientX - start.x;
+  pointY = e.clientY - start.y;
+  setTransform();
+};
+
+window.onwheel = function (e) {
+  e.preventDefault();
+  var xs = (e.clientX - pointX) / scale,
+    ys = (e.clientY - pointY) / scale;
+  delta = e.wheelDelta ? e.wheelDelta : -e.deltaY;
+  scale *= delta < 0 ? (scale >= 0.7 ? 1 / 1.1 : 1) : 1.1;
+  pointX = e.clientX - xs * scale;
+  pointY = e.clientY - ys * scale;
+
+  setTransform();
+};

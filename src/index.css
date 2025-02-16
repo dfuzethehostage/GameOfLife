@@ -13,3 +13,11 @@ body {
   align-items: center;
   justify-content: center;
 }
+
+#canvas {
+  height: 100%;
+  transform-origin: 0px 0px;
+  transform: scale(1) translate(0px, 0px);
+  transition: transform 0.1s ease-out;
+  cursor: grab;
+}
