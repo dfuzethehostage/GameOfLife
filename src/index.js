@@ -7,17 +7,20 @@ let panning = false,
   deleting = false,
   start = { x: 0, y: 0 };
 
-let lineWidth = 8,
-  gridHeight = 100,
-  gridWidth = 150;
+let lineWidth = 1,
+  gridHeight = 800,
+  gridWidth = 800;
 
 let scale = 1,
   minScale = 0.7,
   maxScale = 15,
   hideLineScaleMax = 3;
 
-let colorLines = "#666",
+const colorLines = "#666",
   colorSquares = '#000';
+
+const dragButton = 0,
+  drawAndDeleteButton = 2;
 
 let fields = [];
 for (let i = 0; i < gridHeight; i++) {
@@ -38,16 +41,13 @@ canvas.height = canvas.height - (canvas.height % gridHeight);
 canvas.style.width = canvas.width + "px";
 canvas.style.height = canvas.height + "px";
 
-canvas.height *= 8;
-canvas.width *= 8;
+canvas.height *= 1;
+canvas.width *= 1;
 
 let cellSize = canvas.height / gridHeight;
 
 let pointX = canvas.offsetLeft,
   pointY = canvas.offsetTop;
-
-let dragButton = 0,
-  drawAndDeleteButton = 2;
 
 // Zeichne das Grid
 function drawGrid() {
