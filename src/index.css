@@ -20,7 +20,7 @@ body {
   height: 100%;
   transform-origin: 0px 0px;
   transform: scale(1) translate(0px, 0px);
-  transition: transform 0.1s ease-out;
+  transition: transform 0.3s ease-out;
   cursor: grab;
   image-rendering: crisp-edges;
   border: 1px solid black;
