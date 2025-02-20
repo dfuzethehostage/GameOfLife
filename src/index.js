@@ -2,18 +2,21 @@ const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const container = document.querySelector(".canvas-container");
 
-let scale = 1,
-  panning = false,
+let panning = false,
   drawing = false,
   deleting = false,
-  start = { x: 0, y: 0 },
-  lineWidth = 2,
+  start = { x: 0, y: 0 };
+
+let lineWidth = 2,
   gridHeight = 300,
-  gridWidth = 400,
+  gridWidth = 400;
+
+let startScale = 1,
   minScale = 0.7,
   maxScale = 15,
-  hideLineScale = 3,
-  colorLines = "#666",
+  hideLineScaleMax = 3;
+
+let colorLines = "#666",
   colorSquares = rgb(0, 0, 0);
 
 let fields = [];
@@ -42,15 +45,12 @@ let cellSize = canvas.height / gridHeight;
 let pointX = canvas.offsetLeft,
   pointY = canvas.offsetTop;
 
-setTransform();
-
 // Zeichne das Grid
 function drawGrid() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
   ctx.lineWidth = lineWidth;
-  ctx.strokeStyle = "#666";
-  ctx.fillStyle = "black";
+  ctx.strokeStyle = colorLines;
+  ctx.fillStyle = colorSquares;
 
   for (let i = 0; i < gridHeight; i++) {
     for (let j = 0; j < gridWidth; j++) {
@@ -60,8 +60,7 @@ function drawGrid() {
     }
   }
 
-  if (scale <= hideLineScale) return;
-
+  if (startScale <= hideLineScaleMax) return;
   // **Vertikale Linien**
   for (let i = 1; i < gridWidth; i++) {
     let x = i * cellSize;
@@ -80,12 +79,10 @@ function drawGrid() {
   }
 }
 
-drawGrid();
-
 function setTransform() {
   canvas.style.transform = `translate(${pointX - canvas.offsetLeft}px, ${
     pointY - canvas.offsetTop
-  }px) scale(${scale})`;
+  }px) startScale(${startScale})`;
   drawGrid();
 }
 
@@ -93,10 +90,17 @@ function getFieldCoords(e) {
   e.preventDefault();
   mouseX = e.clientX - pointX;
   mouseY = e.clientY - pointY;
-  let x = Math.floor(mouseX / ((canvas.offsetHeight / gridHeight) * scale));
-  let y = Math.floor(mouseY / ((canvas.offsetHeight / gridHeight) * scale));
+  let x = Math.floor(
+    mouseX / ((canvas.offsetHeight / gridHeight) * startScale)
+  );
+  let y = Math.floor(
+    mouseY / ((canvas.offsetHeight / gridHeight) * startScale)
+  );
   return { y: y, x: x };
 }
+
+setTransform();
+drawGrid();
 
 canvas.onmousedown = function (e) {
   if (e.button == 2) {
@@ -107,6 +111,7 @@ canvas.onmousedown = function (e) {
     let coords = getFieldCoords(e),
       y = coords.y,
       x = coords.x;
+
     if (fields[y][x] == 0) {
       drawing = true;
       fields[y][x] = 1;
@@ -115,6 +120,27 @@ canvas.onmousedown = function (e) {
       fields[y][x] = 0;
     }
     drawGrid(fields);
+  }
+};
+
+canvas.onmousemove = function (e) {
+  if (e.button == 2) {
+    e.preventDefault();
+    if (!panning) {
+      return;
+    }
+
+    pointX = e.clientX - start.x;
+    pointY = e.clientY - start.y;
+    setTransform();
+  } else if (e.button == 0) {
+    let coords = getFieldCoords(e),
+      x = coords.x,
+      y = coords.y;
+
+    if (drawing) fields[y][x] = 1;
+    else if (deleting) fields[y][x] = 0;
+    drawGrid();
   }
 };
 
@@ -127,36 +153,18 @@ window.onmouseup = function (e) {
   }
 };
 
-canvas.onmousemove = function (e) {
-  if (e.button == 2) {
-    e.preventDefault();
-    if (!panning) {
-      return;
-    }
-    pointX = e.clientX - start.x;
-    pointY = e.clientY - start.y;
-    setTransform();
-  } else if (e.button == 0) {
-    let coords = getFieldCoords(e),
-      x = coords.x,
-      y = coords.y;
-    if (drawing) fields[y][x] = 1;
-    else if (deleting) fields[y][x] = 0;
-    drawGrid();
-  }
-};
-
 window.onwheel = function (e) {
   e.preventDefault();
-  let xs = (e.clientX - pointX) / scale,
-    ys = (e.clientY - pointY) / scale;
+
+  let xs = (e.clientX - pointX) / startScale,
+    ys = (e.clientY - pointY) / startScale;
   delta = e.wheelDelta ? e.wheelDelta : -e.deltaY;
 
-  if (delta < 0 && scale >= minScale) scale *= 1 / 1.1;
-  else if (delta > 0 && scale <= maxScale) scale *= 1.1;
+  if (delta < 0 && startScale >= minScale) startScale *= 1 / 1.1;
+  else if (delta > 0 && startScale <= maxScale) startScale *= 1.1;
 
-  pointX = e.clientX - xs * scale;
-  pointY = e.clientY - ys * scale;
+  pointX = e.clientX - xs * startScale;
+  pointY = e.clientY - ys * startScale;
 
   setTransform();
 };
