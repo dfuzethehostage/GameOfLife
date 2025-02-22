@@ -2,6 +2,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-direction: column;
 }
 
 .canvas-container {
@@ -21,7 +22,15 @@ body {
   transform-origin: 0px 0px;
   transform: scale(1) translate(0px, 0px);
   transition: transform 0.3s ease-out;
-  cursor: grab;
   image-rendering: crisp-edges;
   border: 1px solid black;
+  caret-color: transparent;
+}
+
+#task-bar {
+  display: flex;
+  width: 95vw;
+  height: 5vh;
+  align-items: center;
+  justify-content: center;
 }
