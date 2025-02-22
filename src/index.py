@@ -1,16 +1,16 @@
-
 from browser import document,window
 
-def getData(data):
+def getDataFromJs(data):
     data = window.JSON.parse(data)
+    return
 
-def sendData():
+def sendDataToJs():
     data = window.JSON.stringify({
-        "coords_dead": [[1,1]],
-        "coords_alive": [[3,3]]
+        "coords_dead": [[window.Math.floor(window.Math.random() * 400),window.Math.floor(window.Math.random() * 400)]],
+        "coords_alive": [[window.Math.floor(window.Math.random() * 400),window.Math.floor(window.Math.random() * 400)]]
     })
     return data
     
 
-document.getPythonData = sendData
-document.sendPythonData = getData
+window.getDataFromPython = sendDataToJs
+window.sendDataToPython = getDataFromJs

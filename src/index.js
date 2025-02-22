@@ -41,7 +41,6 @@ for (let i = 0; i < gridHeight; i++) {
 }
 
 // Setze Canvas-Größe
-canvas.style.border = `${borderWidth}px solid ${borderColor}`;
 
 canvas.height = container.clientHeight;
 canvas.width = container.clientHeight * (gridWidth / gridHeight);
@@ -63,7 +62,7 @@ let pointX = canvas.offsetLeft,
 // Zeichne das Grid
 function drawGrid() {
   // **Vertikale Linien**
-  for (let i = 0; i < gridWidth; i++) {
+  for (let i = 0; i <= gridWidth; i++) {
     let x = i * cellSize;
     ctx.beginPath();
     ctx.moveTo(x, 0);
@@ -71,12 +70,20 @@ function drawGrid() {
     ctx.stroke();
   }
   // **Horizontale Linien**
-  for (let i = 0; i < gridHeight; i++) {
+  for (let i = 0; i <= gridHeight; i++) {
     let y = i * cellSize;
     ctx.beginPath();
     ctx.moveTo(0, y);
     ctx.lineTo(canvas.width, y);
     ctx.stroke();
+  }
+}
+
+function drawAllRects() {
+  for (let i = 0; i < gridHeight; i++) {
+    for (let j = 0; j < gridWidth; j++) {
+      if (fields[i][j] == 1) drawOrDeleteRectAt(i, j, true);
+    }
   }
 }
 
@@ -89,20 +96,9 @@ function setTransform() {
 function getFieldCoords(e) {
   mouseX = e.clientX - pointX;
   mouseY = e.clientY - pointY;
-  let x = Math.floor(
-    (mouseX - borderWidth * scale) / ((canvas.offsetWidth / gridWidth) * scale)
-  );
-  let y = Math.floor(
-    (mouseY - borderWidth * scale) /
-      ((canvas.offsetHeight / gridHeight) * scale)
-  );
+  let x = Math.floor(mouseX / ((canvas.offsetWidth / gridWidth) * scale));
+  let y = Math.floor(mouseY / ((canvas.offsetHeight / gridHeight) * scale));
   return { y: y, x: x };
-}
-
-function sendPythonData(y, x) {
-  let data = { y: y, x: x };
-  let jsonData = JSON.stringify(data);
-  document.sendPythonData(jsonData);
 }
 
 function drawOrDeleteRectAt(y, x, draw) {
@@ -124,9 +120,15 @@ function drawOrDeleteRectAt(y, x, draw) {
     fields[y][x] = 0;
   }
 }
+function sendPythonData(y, x) {
+  let data = { y: y, x: x };
+  let jsonData = JSON.stringify(data);
+  window.sendDataToPython(jsonData);
+}
+
 function gameLoop() {
   if (runningButtonOn && running) {
-    let data = JSON.parse(document.getPythonData());
+    let data = JSON.parse(window.getDataFromPython());
     let coords_dead = data.coords_dead;
     let coords_alive = data.coords_alive;
     for (coords of coords_dead) {
@@ -190,7 +192,7 @@ canvas.onmousemove = function (e) {
   sendPythonData(y, x);
 };
 
-canvas.onmouseup = function (e) {
+window.onmouseup = function (e) {
   if (e.button == dragButton) {
     panning = false;
   } else if (e.button == drawAndDeleteButton) {
@@ -208,6 +210,7 @@ window.onwheel = function (e) {
   if (delta < 0 && scale >= minScale) {
     if (scale > hideLineScaleMax && scale / 1.1 < hideLineScaleMax) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawAllRects();
     }
     scale /= 1.1;
   } else if (delta > 0 && scale <= maxScale) {

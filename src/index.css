@@ -23,7 +23,6 @@ body {
   transform: scale(1) translate(0px, 0px);
   transition: transform 0.3s ease-out;
   image-rendering: crisp-edges;
-  border: 1px solid black;
   caret-color: transparent;
 }
 
