@@ -142,7 +142,16 @@ function gameLoop() {
 
 setTransform();
 
-startButton.onclick = () => (runningButtonOn = runningButtonOn ? false : true);
+startButton.onclick = () => {
+  if(runningButtonOn) {
+    runningButtonOn = false;
+    startButton.innerText = 'Start'; 
+  }
+  else {
+    runningButtonOn = true;
+    startButton.innerText = 'Stop';
+  }
+};
 
 canvas.addEventListener("contextmenu", function (event) {
   event.preventDefault();
