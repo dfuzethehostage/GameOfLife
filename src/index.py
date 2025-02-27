@@ -11,7 +11,8 @@ def getDataFromJs(data):
     data = window.JSON.parse(data)
     y = data["y"]
     x = data["x"]
-    grid[y][x] = 1  
+    if(data.draw): grid[y][x] = 1
+    else: grid[y][x] = 0  
     return
 
 def sendDataToJs():

@@ -2,6 +2,7 @@ const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const container = document.querySelector(".canvas-container");
 const startButton = document.getElementById("start-button");
+const nextButton = document.getElementById("next-button");
 
 let panning = false,
   drawing = false,
@@ -18,8 +19,8 @@ let lineWidth = 2,
 
 let scale = 1,
   minScale = 0.7,
-  maxScale = 400,
-  hideLineScaleMax = 3;
+  maxScale = 40,
+  hideLineScaleMax = 1;
 
 const colorLines = "#666",
   colorSquares = "#000";
@@ -51,8 +52,8 @@ canvas.height = canvas.height - (canvas.height % gridHeight);
 canvas.style.width = canvas.width + "px";
 canvas.style.height = canvas.height + "px";
 
-canvas.height *= 7;
-canvas.width *= 7;
+canvas.height *= 2;
+canvas.width *= 2;
 
 let cellSize = canvas.height / gridHeight;
 
@@ -128,17 +129,14 @@ function sendPythonData(y, x,draw) {
 }
 
 function gameLoop() {
-  if (runningButtonOn && running) {
-    let data = JSON.parse(window.getDataFromPython());
-    let coords_dead = data.coords_dead;
-    let coords_alive = data.coords_alive;
-    for (coords of coords_dead) {
-      drawOrDeleteRectAt(coords[0], coords[1], false);
-    }
-    for (coords of coords_alive) {
-      drawOrDeleteRectAt(coords[0], coords[1], true);
-    }
-    console.log(data);
+  let data = JSON.parse(window.getDataFromPython());
+  let coords_dead = data.coords_dead;
+  let coords_alive = data.coords_alive;
+  for (coords of coords_dead) {
+    drawOrDeleteRectAt(coords[0], coords[1], false);
+  }
+  for (coords of coords_alive) {
+    drawOrDeleteRectAt(coords[0], coords[1], true);
   }
 }
 
@@ -224,4 +222,6 @@ window.onwheel = function (e) {
   setTransform();
 };
 
-setInterval(gameLoop, 1000);
+setInterval(() => {if(runningButtonOn && running) gameLoop()}, 100);
+
+nextButton.onclick = gameLoop
