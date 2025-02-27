@@ -11,8 +11,8 @@ let panning = false,
   start = { x: 0, y: 0 };
 
 let lineWidth = 2,
-  gridHeight = 400,
-  gridWidth = 400,
+  gridHeight = 100,
+  gridWidth = 100,
   borderWidth = 1,
   borderColor;
 
@@ -119,9 +119,10 @@ function drawOrDeleteRectAt(y, x, draw) {
     );
     fields[y][x] = 0;
   }
+  sendPythonData(y,x,draw)
 }
-function sendPythonData(y, x) {
-  let data = { y: y, x: x };
+function sendPythonData(y, x,draw) {
+  let data = { y: y, x: x, draw: draw };
   let jsonData = JSON.stringify(data);
   window.sendDataToPython(jsonData);
 }
@@ -166,7 +167,6 @@ canvas.onmousedown = function (e) {
       drawOrDeleteRectAt(y, x, false);
     }
     console.log(running, runningButtonOn, drawing, deleting);
-    sendPythonData(y, x);
   }
 };
 
@@ -188,8 +188,6 @@ canvas.onmousemove = function (e) {
     fields[y][x] = 0;
     drawOrDeleteRectAt(y, x, false);
   }
-
-  sendPythonData(y, x);
 };
 
 window.onmouseup = function (e) {
@@ -226,4 +224,4 @@ window.onwheel = function (e) {
   setTransform();
 };
 
-setInterval(gameLoop, 100);
+setInterval(gameLoop, 1000);

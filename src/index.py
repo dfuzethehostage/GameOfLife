@@ -1,8 +1,8 @@
 from browser import document, window
 
 
-grid_width = 400
-grid_height = 400
+grid_width = 100
+grid_height = 100
 grid = [[0 for _ in range(grid_width)] for _ in range(grid_height)]
 
 def getDataFromJs(data):
