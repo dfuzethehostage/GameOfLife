@@ -20,8 +20,8 @@ let panning = false,
 // Darstellungs Einstellungen
 
 let lineWidth = 2,
-  gridHeight = 800,
-  gridWidth = 800,
+  gridHeight = 300,
+  gridWidth = 300,
   borderWidth = 1,
   borderColor;
 
@@ -61,8 +61,8 @@ canvas.height = canvas.height - (canvas.height % gridHeight);
 canvas.style.width = canvas.width + "px";
 canvas.style.height = canvas.height + "px";
 
-canvas.height *= 4;
-canvas.width *= 4;
+canvas.height *= 5;
+canvas.width *= 5;
 
 let cellSize = canvas.height / gridHeight;
 
@@ -114,18 +114,18 @@ function getFieldCoords(e) {
 function drawOrDeleteRectAt(y, x, draw) {
   if (draw) {
     ctx.fillRect(
-      x * cellSize + lineWidth / 2,
-      y * cellSize + lineWidth / 2,
-      cellSize - lineWidth,
-      cellSize - lineWidth
+      x * cellSize + (scale > hideLineScaleMax ? lineWidth / 2 : 0),
+      y * cellSize + (scale > hideLineScaleMax ? lineWidth / 2 : 0),
+      cellSize - (scale > hideLineScaleMax ? lineWidth : 0),
+      cellSize - (scale > hideLineScaleMax ? lineWidth : 0)
     );
     fields[y][x] = 1;
   } else {
     ctx.clearRect(
-      x * cellSize + lineWidth / 2,
-      y * cellSize + lineWidth / 2,
-      cellSize - lineWidth,
-      cellSize - lineWidth
+      x * cellSize + (scale > hideLineScaleMax ? lineWidth / 2 : 0),
+      y * cellSize + (scale > hideLineScaleMax ? lineWidth / 2 : 0),
+      cellSize - (scale > hideLineScaleMax ? lineWidth : 0),
+      cellSize - (scale > hideLineScaleMax ? lineWidth : 0)
     );
     fields[y][x] = 0;
   }
@@ -175,7 +175,34 @@ startButton.onclick = () => {
 resetButton.onclick = () => {
   const data = JSON.stringify({ action: "reset" });
   window.sendDataToPython(data);
+
+  // Reset the JavaScript grid
+  for (let y = 0; y < gridHeight; y++) {
+    for (let x = 0; x < gridWidth; x++) {
+      if (fields[y][x] === 1) {
+        drawOrDeleteRectAt(y, x, false);  // Clear the cell
+      }
+    }
+  }
+
+  // Reset generation and highscore display
   generationDisplay.innerText = "Generation: 0";
+  highscoreDisplay.innerText = "Highscore: 0";
+};
+
+nextButton.onclick = () => {
+  if (!runningButtonOn) {  // Only allow stepping if the game is paused
+    const data = JSON.parse(window.getDataFromPython());
+    const { coords_dead, coords_alive, generation, highscore } = data;
+
+    // Update the grid visualization
+    coords_dead.forEach(([y, x]) => drawOrDeleteRectAt(y, x, false));
+    coords_alive.forEach(([y, x]) => drawOrDeleteRectAt(y, x, true));
+
+    // Update the generation display
+    generationDisplay.innerText = `Generation: ${generation}`;
+    highscoreDisplay.innerText = `Highscore: ${highscore}`;
+  }
 };
 
 canvas.addEventListener("contextmenu", function (event) {
@@ -239,15 +266,20 @@ window.onwheel = function (e) {
 
   if (delta < 0 && scale >= minScale) {
     if (scale > hideLineScaleMax && scale / 1.1 < hideLineScaleMax) {
+      scale /= 1.1;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawAllRects();
     }
-    scale /= 1.1;
+    else scale /= 1.1;
+    
   } else if (delta > 0 && scale <= maxScale) {
     if (scale < hideLineScaleMax && scale * 1.1 > hideLineScaleMax) {
+      scale *= 1.1;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawGrid();
+      drawAllRects();
     }
-    scale *= 1.1;
+    else scale *= 1.1;
   }
 
   pointX = e.clientX - xs * scale;
@@ -259,5 +291,3 @@ window.onwheel = function (e) {
 setInterval(() => {
   if (runningButtonOn && running) gameLoop();
 }, 100);
-
-nextButton.onclick = gameLoop;
