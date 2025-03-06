@@ -15,15 +15,15 @@ let panning = false,
   start = { x: 0, y: 0 };
 
 let lineWidth = 2,
-  gridHeight = 800,
-  gridWidth = 800,
+  gridHeight = 400,
+  gridWidth = 400,
   borderWidth = 1,
   borderColor;
 
 let scale = 1,
   minScale = 0.7,
   maxScale = 40,
-  hideLineScaleMax = 3;
+  hideLineScaleMax = 1;
 
 const colorLines = "#666",
   colorSquares = "#000";
@@ -54,8 +54,8 @@ canvas.height = canvas.height - (canvas.height % gridHeight);
 canvas.style.width = canvas.width + "px";
 canvas.style.height = canvas.height + "px";
 
-canvas.height *= 4;
-canvas.width *= 4;
+canvas.height *= 2;
+canvas.width *= 2;
 
 let cellSize = canvas.height / gridHeight;
 
@@ -156,7 +156,6 @@ function gameLoop() {
 setTransform();
 
 startButton.onclick = () => {
-<<<<<<< HEAD
   if (runningButtonOn) {
     runningButtonOn = false;
     startButton.innerText = "Start";
@@ -169,19 +168,35 @@ startButton.onclick = () => {
 resetButton.onclick = () => {
   const data = JSON.stringify({ action: "reset" });
   window.sendDataToPython(data);
+
+  // Reset the JavaScript grid
+  for (let y = 0; y < gridHeight; y++) {
+    for (let x = 0; x < gridWidth; x++) {
+      if (fields[y][x] === 1) {
+        drawOrDeleteRectAt(y, x, false);  // Clear the cell
+      }
+    }
+  }
+
+  // Reset generation and highscore display
   generationDisplay.innerText = "Generation: 0";
+  highscoreDisplay.innerText = "Highscore: 0";
 };
-=======
-  if(runningButtonOn) {
-    runningButtonOn = false;
-    startButton.innerText = 'Start'; 
-  }
-  else {
-    runningButtonOn = true;
-    startButton.innerText = 'Stop';
+
+nextButton.onclick = () => {
+  if (!runningButtonOn) {  // Only allow stepping if the game is paused
+    const data = JSON.parse(window.getDataFromPython());
+    const { coords_dead, coords_alive, generation, highscore } = data;
+
+    // Update the grid visualization
+    coords_dead.forEach(([y, x]) => drawOrDeleteRectAt(y, x, false));
+    coords_alive.forEach(([y, x]) => drawOrDeleteRectAt(y, x, true));
+
+    // Update the generation display
+    generationDisplay.innerText = `Generation: ${generation}`;
+    highscoreDisplay.innerText = `Highscore: ${highscore}`;
   }
 };
->>>>>>> 84803c270bfeee42687f63df8b5e432d70df2bb7
 
 canvas.addEventListener("contextmenu", function (event) {
   event.preventDefault();
@@ -264,5 +279,3 @@ window.onwheel = function (e) {
 setInterval(() => {
   if (runningButtonOn && running) gameLoop();
 }, 100);
-
-nextButton.onclick = gameLoop;
