@@ -1,65 +1,97 @@
 from browser import window
+import time
 
+# Configuration
+GRID_WIDTH = 200  # Large grid size
+GRID_HEIGHT = 200
+CELL_SIZE = 10
 
-grid_width = 100
-grid_height = 100
-grid = [[0 for _ in range(grid_width)] for _ in range(grid_height)]
+class GameState:
+    def __init__(self):
+        self.live_cells = set()  # Use a set to store live cells
+        self.last_update = time.time()
+        self.update_interval = 0.2  # Update every 200ms
+
+    def update(self):
+        """Calculate the next generation of the grid."""
+        current_time = time.time()
+        if current_time - self.last_update < self.update_interval:
+            return {"coords_dead": [], "coords_alive": []}
+
+        # Track changes
+        new_live_cells = set()
+        cells_to_check = self.get_cells_to_check()
+
+        # Calculate the next generation
+        for (y, x) in cells_to_check:
+            neighbors = self.count_neighbors(y, x)
+            if (y, x) in self.live_cells:  # Cell is alive
+                if 2 <= neighbors <= 3:
+                    new_live_cells.add((y, x))  # Cell stays alive
+            else:  # Cell is dead
+                if neighbors == 3:
+                    new_live_cells.add((y, x))  # Cell is created
+
+        # Determine changes
+        coords_dead = self.live_cells - new_live_cells
+        coords_alive = new_live_cells - self.live_cells
+
+        # Update the grid
+        self.live_cells = new_live_cells
+        self.last_update = current_time
+
+        return {
+            "coords_dead": list(coords_dead),
+            "coords_alive": list(coords_alive)
+        }
+
+    def get_cells_to_check(self):
+        """Get all cells to check (live cells and their neighbors)."""
+        cells_to_check = set()
+        for (y, x) in self.live_cells:
+            # Add the cell and its neighbors
+            for dy in [-1, 0, 1]:
+                for dx in [-1, 0, 1]:
+                    ny = y + dy
+                    nx = x + dx
+                    if 0 <= ny < GRID_HEIGHT and 0 <= nx < GRID_WIDTH:
+                        cells_to_check.add((ny, nx))
+        return cells_to_check
+
+    def count_neighbors(self, y, x):
+        """Count the number of live neighbors for a cell at (y, x)."""
+        neighbors = 0
+        for dy in [-1, 0, 1]:
+            for dx in [-1, 0, 1]:
+                if dy == 0 and dx == 0:
+                    continue  # Skip the cell itself
+                ny = y + dy
+                nx = x + dx
+                if (ny, nx) in self.live_cells:
+                    neighbors += 1
+        return neighbors
+
+# Initialize the game state
+game_state = GameState()
 
 def getDataFromJs(data):
-    
-    global grid
+    """Handle data from JavaScript (user-drawn cells)."""
     data = window.JSON.parse(data)
     y = data["y"]
     x = data["x"]
-    if(data.draw): grid[y][x] = 1
-    else: grid[y][x] = 0  
-    return
+    if data["draw"]:
+        game_state.live_cells.add((y, x))  # Mark the cell as alive
+    else:
+        game_state.live_cells.discard((y, x))  # Mark the cell as dead
 
 def sendDataToJs():
-    
-    global grid
-    new_grid = [[0 for _ in range(grid_width)] for _ in range(grid_height)]
-    coords_dead = []
-    coords_alive = []
-
-    
-    for y in range(grid_height):
-        for x in range(grid_width):
-            neighbors = count_neighbors(y, x)
-            if grid[y][x]:  # Cell is alive
-                if neighbors < 2 or neighbors > 3:
-                    coords_dead.append([y, x])  # Cell dies
-                else:
-                    coords_alive.append([y, x])  # Cell stays alive
-                    new_grid[y][x] = 1
-            else:  # Cell is dead
-                if neighbors == 3:
-                    coords_alive.append([y, x])  # Cell is created
-                    new_grid[y][x] = 1
-
-    
-    grid = new_grid
-
-    # Send the changes to JavaScript
-    data = window.JSON.stringify({
-        "coords_dead": coords_dead,
-        "coords_alive": coords_alive
+    """Send the next generation of the grid to JavaScript."""
+    changes = game_state.update()
+    return window.JSON.stringify({
+        "coords_dead": [[y, x] for (y, x) in changes["coords_dead"]],
+        "coords_alive": [[y, x] for (y, x) in changes["coords_alive"]]
     })
-    return data
 
-def count_neighbors(y, x):
-    
-    neighbors = 0
-    for dy in [-1, 0, 1]:
-        for dx in [-1, 0, 1]:
-            if dx == 0 and dy == 0:
-                continue
-            ny = y + dy
-            nx = x + dx
-            if 0 <= ny < grid_height and 0 <= nx < grid_width:
-                neighbors += grid[ny][nx]
-    return neighbors
-
-# Expose the Python functions to JavaScript
+# Expose Python functions to JavaScript
 window.getDataFromPython = sendDataToJs
 window.sendDataToPython = getDataFromJs
