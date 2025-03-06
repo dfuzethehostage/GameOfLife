@@ -156,6 +156,7 @@ function gameLoop() {
 setTransform();
 
 startButton.onclick = () => {
+<<<<<<< HEAD
   if (runningButtonOn) {
     runningButtonOn = false;
     startButton.innerText = "Start";
@@ -170,6 +171,17 @@ resetButton.onclick = () => {
   window.sendDataToPython(data);
   generationDisplay.innerText = "Generation: 0";
 };
+=======
+  if(runningButtonOn) {
+    runningButtonOn = false;
+    startButton.innerText = 'Start'; 
+  }
+  else {
+    runningButtonOn = true;
+    startButton.innerText = 'Stop';
+  }
+};
+>>>>>>> 84803c270bfeee42687f63df8b5e432d70df2bb7
 
 canvas.addEventListener("contextmenu", function (event) {
   event.preventDefault();
