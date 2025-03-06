@@ -1,4 +1,4 @@
-from browser import document, window
+from browser import window
 
 
 grid_width = 100

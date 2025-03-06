@@ -4,12 +4,17 @@ const container = document.querySelector(".canvas-container");
 const startButton = document.getElementById("start-button");
 const nextButton = document.getElementById("next-button");
 
+// Status Variablen
+
 let panning = false,
   drawing = false,
   deleting = false,
   running = true,
   runningButtonOn = false,
   start = { x: 0, y: 0 };
+
+
+// Darstellungs Einstellungen
 
 let lineWidth = 2,
   gridHeight = 100,
@@ -20,7 +25,7 @@ let lineWidth = 2,
 let scale = 1,
   minScale = 0.7,
   maxScale = 40,
-  hideLineScaleMax = 1;
+  hideLineScaleMax = 3;
 
 const colorLines = "#666",
   colorSquares = "#000";
@@ -31,6 +36,8 @@ const dragButton = 0,
 ctx.lineWidth = lineWidth;
 ctx.strokeStyle = colorLines;
 ctx.fillStyle = colorSquares;
+
+// Erstelle das Grid
 
 let fields = [];
 for (let i = 0; i < gridHeight; i++) {
@@ -60,9 +67,10 @@ let cellSize = canvas.height / gridHeight;
 let pointX = canvas.offsetLeft,
   pointY = canvas.offsetTop;
 
+
 // Zeichne das Grid
+
 function drawGrid() {
-  // **Vertikale Linien**
   for (let i = 0; i <= gridWidth; i++) {
     let x = i * cellSize;
     ctx.beginPath();
@@ -70,7 +78,6 @@ function drawGrid() {
     ctx.lineTo(x, canvas.height);
     ctx.stroke();
   }
-  // **Horizontale Linien**
   for (let i = 0; i <= gridHeight; i++) {
     let y = i * cellSize;
     ctx.beginPath();
