@@ -3,6 +3,9 @@ const ctx = canvas.getContext("2d");
 const container = document.querySelector(".canvas-container");
 const startButton = document.getElementById("start-button");
 const nextButton = document.getElementById("next-button");
+const resetButton = document.getElementById("reset-button");
+const generationDisplay = document.getElementById("generation-display");
+const highscoreDisplay = document.getElementById("highscore-display");
 
 let panning = false,
   drawing = false,
@@ -12,15 +15,15 @@ let panning = false,
   start = { x: 0, y: 0 };
 
 let lineWidth = 2,
-  gridHeight = 100,
-  gridWidth = 100,
+  gridHeight = 800,
+  gridWidth = 800,
   borderWidth = 1,
   borderColor;
 
 let scale = 1,
   minScale = 0.7,
   maxScale = 40,
-  hideLineScaleMax = 1;
+  hideLineScaleMax = 3;
 
 const colorLines = "#666",
   colorSquares = "#000";
@@ -42,7 +45,6 @@ for (let i = 0; i < gridHeight; i++) {
 }
 
 // Setze Canvas-Größe
-
 canvas.height = container.clientHeight;
 canvas.width = container.clientHeight * (gridWidth / gridHeight);
 
@@ -52,8 +54,8 @@ canvas.height = canvas.height - (canvas.height % gridHeight);
 canvas.style.width = canvas.width + "px";
 canvas.style.height = canvas.height + "px";
 
-canvas.height *= 2;
-canvas.width *= 2;
+canvas.height *= 4;
+canvas.width *= 4;
 
 let cellSize = canvas.height / gridHeight;
 
@@ -120,29 +122,54 @@ function drawOrDeleteRectAt(y, x, draw) {
     );
     fields[y][x] = 0;
   }
-  sendPythonData(y,x,draw)
+  sendPythonData(y, x, draw);
 }
-function sendPythonData(y, x,draw) {
-  let data = { y: y, x: x, draw: draw };
+
+function sendPythonData(y, x, draw) {
+  let data = { action: "draw", y: y, x: x, draw: draw };
   let jsonData = JSON.stringify(data);
   window.sendDataToPython(jsonData);
 }
 
 function gameLoop() {
-  let data = JSON.parse(window.getDataFromPython());
-  let coords_dead = data.coords_dead;
-  let coords_alive = data.coords_alive;
-  for (coords of coords_dead) {
-    drawOrDeleteRectAt(coords[0], coords[1], false);
+  if (runningButtonOn && running) {
+    let data = JSON.parse(window.getDataFromPython());
+    let coords_dead = data.coords_dead;
+    let coords_alive = data.coords_alive;
+    let generation = data.generation;
+    let highscore = data.highscore;
+
+    for (coords of coords_dead) {
+      drawOrDeleteRectAt(coords[0], coords[1], false);
+    }
+    for (coords of coords_alive) {
+      drawOrDeleteRectAt(coords[0], coords[1], true);
+    }
+
+    // Update generation and highscore display
+    generationDisplay.innerText = `Generation: ${generation}`;
+    highscoreDisplay.innerText = `Highscore: ${highscore}`;
   }
-  for (coords of coords_alive) {
-    drawOrDeleteRectAt(coords[0], coords[1], true);
-  }
+  requestAnimationFrame(gameLoop);
 }
 
 setTransform();
 
-startButton.onclick = () => (runningButtonOn = runningButtonOn ? false : true);
+startButton.onclick = () => {
+  if (runningButtonOn) {
+    runningButtonOn = false;
+    startButton.innerText = "Start";
+  } else {
+    runningButtonOn = true;
+    startButton.innerText = "Stop";
+  }
+};
+
+resetButton.onclick = () => {
+  const data = JSON.stringify({ action: "reset" });
+  window.sendDataToPython(data);
+  generationDisplay.innerText = "Generation: 0";
+};
 
 canvas.addEventListener("contextmenu", function (event) {
   event.preventDefault();
@@ -222,6 +249,8 @@ window.onwheel = function (e) {
   setTransform();
 };
 
-setInterval(() => {if(runningButtonOn && running) gameLoop()}, 100);
+setInterval(() => {
+  if (runningButtonOn && running) gameLoop();
+}, 100);
 
-nextButton.onclick = gameLoop
+nextButton.onclick = gameLoop;
