@@ -19,9 +19,9 @@ let panning = false,
 // Darstellungs Einstellungen
 
 let lineWidth = 2,
-  gridHeight = 300,
-  gridWidth = 300,
-  borderWidth = 1,
+  gridHeight = 100,
+  gridWidth = 100,
+  borderWidth = 0,
   borderColor = "black";
 
 let scale = 1,
@@ -60,8 +60,8 @@ canvas.height = canvas.height - (canvas.height % gridHeight);
 canvas.style.width = canvas.width + "px";
 canvas.style.height = canvas.height + "px";
 
-canvas.height *= 5;
-canvas.width *= 5;
+canvas.height *= 1;
+canvas.width *= 1;
 
 let cellSize = canvas.height / gridHeight;
 
@@ -102,8 +102,8 @@ function setTransform() {
 }
 
 function getFieldCoords(e) {
-  mouseX = e.clientX - pointX - scale * borderWidth;
-  mouseY = e.clientY - pointY - scale * borderWidth;
+  let mouseX = e.clientX - pointX - scale * borderWidth;
+  let mouseY = e.clientY - pointY - scale * borderWidth;
   let x = Math.floor(
     mouseX / (((canvas.offsetWidth - 2 * borderWidth) * scale) / gridWidth)
   );
@@ -165,11 +165,11 @@ function gameLoop() {
 setTransform();
 
 startButton.onclick = () => {
-  if (runningButtonOn) {
-    runningButtonOn = false;
+  if (startButtonOn) {
+    startButtonOn = false;
     startButton.innerText = "Start";
   } else {
-    runningButtonOn = true;
+    startButtonOn = true;
     startButton.innerText = "Stop";
   }
 };
@@ -193,7 +193,7 @@ resetButton.onclick = () => {
 };
 
 nextButton.onclick = () => {
-  if (!runningButtonOn) {
+  if (!startButtonOn) {
     // Only allow stepping if the game is paused
     const data = JSON.parse(window.getDataFromPython());
     const { coords_dead, coords_alive, generation, highscore } = data;
@@ -228,7 +228,6 @@ canvas.onmousedown = function (e) {
       deleting = true;
       drawOrDeleteRectAt(y, x, false);
     }
-    console.log(running, runningButtonOn, drawing, deleting);
   }
 };
 
@@ -289,5 +288,5 @@ window.onwheel = function (e) {
 };
 
 setInterval(() => {
-  if (runningButtonOn && running) gameLoop();
-}, 100);
+  if (startButtonOn && running) gameLoop();
+}, 200);
