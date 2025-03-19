@@ -2,6 +2,12 @@ const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const container = document.querySelector(".canvas-container");
 const startButton = document.getElementById("start-button");
+const nextButton = document.getElementById("next-button");
+const resetButton = document.getElementById("reset-button");
+const generationDisplay = document.getElementById("generation-display");
+const highscoreDisplay = document.getElementById("highscore-display");
+
+// Status Variablen
 
 let panning = false,
   drawing = false,
@@ -10,15 +16,17 @@ let panning = false,
   startButtonOn = false,
   start = { x: 0, y: 0 };
 
+// Darstellungs Einstellungen
+
 let lineWidth = 2,
-  gridHeight = 400,
-  gridWidth = 400,
+  gridHeight = 300,
+  gridWidth = 300,
   borderWidth = 1,
   borderColor = "black";
 
 let scale = 1,
   minScale = 0.7,
-  maxScale = 400,
+  maxScale = 40,
   hideLineScaleMax = 3;
 
 const colorLines = "#333",
@@ -31,7 +39,7 @@ ctx.lineWidth = lineWidth;
 ctx.strokeStyle = colorLines;
 ctx.fillStyle = colorSquares;
 
-canvas.style.border = `${borderWidth}px solid ${borderColor}`;
+// Erstelle das Grid
 
 let fields = [];
 for (let i = 0; i < gridHeight; i++) {
@@ -43,7 +51,6 @@ for (let i = 0; i < gridHeight; i++) {
 }
 
 // Setze Canvas-Größe
-
 canvas.height = container.clientHeight;
 canvas.width = container.clientHeight * (gridWidth / gridHeight);
 
@@ -53,8 +60,8 @@ canvas.height = canvas.height - (canvas.height % gridHeight);
 canvas.style.width = canvas.width + "px";
 canvas.style.height = canvas.height + "px";
 
-canvas.height *= 7;
-canvas.width *= 7;
+canvas.height *= 5;
+canvas.width *= 5;
 
 let cellSize = canvas.height / gridHeight;
 
@@ -62,8 +69,8 @@ let pointX = canvas.offsetLeft,
   pointY = canvas.offsetTop;
 
 // Zeichne das Grid
+
 function drawGrid() {
-  // **Vertikale Linien**
   for (let i = 0; i <= gridWidth; i++) {
     let x = i * cellSize;
     ctx.beginPath();
@@ -71,7 +78,6 @@ function drawGrid() {
     ctx.lineTo(x, canvas.height);
     ctx.stroke();
   }
-  // **Horizontale Linien**
   for (let i = 0; i <= gridHeight; i++) {
     let y = i * cellSize;
     ctx.beginPath();
@@ -110,24 +116,26 @@ function getFieldCoords(e) {
 function drawOrDeleteRectAt(y, x, draw) {
   if (draw) {
     ctx.fillRect(
-      x * cellSize + lineWidth / 2,
-      y * cellSize + lineWidth / 2,
-      cellSize - lineWidth,
-      cellSize - lineWidth
+      x * cellSize + (scale > hideLineScaleMax ? lineWidth / 2 : 0),
+      y * cellSize + (scale > hideLineScaleMax ? lineWidth / 2 : 0),
+      cellSize - (scale > hideLineScaleMax ? lineWidth : 0),
+      cellSize - (scale > hideLineScaleMax ? lineWidth : 0)
     );
     fields[y][x] = 1;
   } else {
     ctx.clearRect(
-      x * cellSize + lineWidth / 2,
-      y * cellSize + lineWidth / 2,
-      cellSize - lineWidth,
-      cellSize - lineWidth
+      x * cellSize + (scale > hideLineScaleMax ? lineWidth / 2 : 0),
+      y * cellSize + (scale > hideLineScaleMax ? lineWidth / 2 : 0),
+      cellSize - (scale > hideLineScaleMax ? lineWidth : 0),
+      cellSize - (scale > hideLineScaleMax ? lineWidth : 0)
     );
     fields[y][x] = 0;
   }
+  sendPythonData(y, x, draw);
 }
-function sendPythonData(y, x) {
-  let data = { y: y, x: x };
+
+function sendPythonData(y, x, draw) {
+  let data = { action: "draw", y: y, x: x, draw: draw };
   let jsonData = JSON.stringify(data);
   window.sendDataToPython(jsonData);
 }
@@ -137,25 +145,66 @@ function gameLoop() {
     let data = JSON.parse(window.getDataFromPython());
     let coords_dead = data.coords_dead;
     let coords_alive = data.coords_alive;
+    let generation = data.generation;
+    let highscore = data.highscore;
+
     for (coords of coords_dead) {
       drawOrDeleteRectAt(coords[0], coords[1], false);
     }
     for (coords of coords_alive) {
       drawOrDeleteRectAt(coords[0], coords[1], true);
     }
-    console.log(data);
+
+    // Update generation and highscore display
+    generationDisplay.innerText = `Generation: ${generation}`;
+    highscoreDisplay.innerText = `Highscore: ${highscore}`;
   }
+  requestAnimationFrame(gameLoop);
 }
 
 setTransform();
 
 startButton.onclick = () => {
-  if (startButtonOn) {
+  if (runningButtonOn) {
+    runningButtonOn = false;
     startButton.innerText = "Start";
-    startButtonOn = false;
   } else {
+    runningButtonOn = true;
     startButton.innerText = "Stop";
-    startButtonOn = true;
+  }
+};
+
+resetButton.onclick = () => {
+  const data = JSON.stringify({ action: "reset" });
+  window.sendDataToPython(data);
+
+  // Reset the JavaScript grid
+  for (let y = 0; y < gridHeight; y++) {
+    for (let x = 0; x < gridWidth; x++) {
+      if (fields[y][x] === 1) {
+        drawOrDeleteRectAt(y, x, false); // Clear the cell
+      }
+    }
+  }
+
+  // Reset generation and highscore display
+  generationDisplay.innerText = "Generation: 0";
+  highscoreDisplay.innerText = "Highscore: 0";
+};
+
+nextButton.onclick = () => {
+  if (!runningButtonOn) {
+    // Only allow stepping if the game is paused
+    const data = JSON.parse(window.getDataFromPython());
+    const { coords_dead, coords_alive, generation, highscore } = data;
+
+    // Update the grid visualization
+    coords_dead.forEach(([y, x]) => drawOrDeleteRectAt(y, x, false));
+    coords_alive.forEach(([y, x]) => drawOrDeleteRectAt(y, x, true));
+
+    // Update the generation display
+    generationDisplay.innerText = `Generation: ${generation}`;
+    highscoreDisplay.innerText = `Highscore: ${highscore}`;
   }
 };
 
@@ -179,8 +228,7 @@ canvas.onmousedown = function (e) {
       deleting = true;
       drawOrDeleteRectAt(y, x, false);
     }
-    console.log(running, startButtonOn, drawing, deleting);
-    sendPythonData(y, x);
+    console.log(running, runningButtonOn, drawing, deleting);
   }
 };
 
@@ -202,8 +250,6 @@ canvas.onmousemove = function (e) {
     fields[y][x] = 0;
     drawOrDeleteRectAt(y, x, false);
   }
-
-  sendPythonData(y, x);
 };
 
 window.onmouseup = function (e) {
@@ -223,15 +269,17 @@ window.onwheel = function (e) {
 
   if (delta < 0 && scale >= minScale) {
     if (scale > hideLineScaleMax && scale / 1.1 < hideLineScaleMax) {
+      scale /= 1.1;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawAllRects();
-    }
-    scale /= 1.1;
+    } else scale /= 1.1;
   } else if (delta > 0 && scale <= maxScale) {
     if (scale < hideLineScaleMax && scale * 1.1 > hideLineScaleMax) {
+      scale *= 1.1;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawGrid();
-    }
-    scale *= 1.1;
+      drawAllRects();
+    } else scale *= 1.1;
   }
 
   pointX = e.clientX - xs * scale;
@@ -240,4 +288,6 @@ window.onwheel = function (e) {
   setTransform();
 };
 
-setInterval(gameLoop, 100);
+setInterval(() => {
+  if (runningButtonOn && running) gameLoop();
+}, 100);

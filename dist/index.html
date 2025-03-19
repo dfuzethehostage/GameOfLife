@@ -3,9 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Game of Life</title>
     <link rel="stylesheet" href="../src/index.css" />
-    <script src="../node_modules/brython/brython.min.js"></script>
+    <script src="../brython/brython.js"></script>
+    <script src="../brython/brython_stdlib.js"></script>
   </head>
   <body onload="brython()">
     <div class="canvas-container">
@@ -13,7 +14,11 @@
     </div>
     <div id="task-bar">
       <button id="start-button">Start</button>
-    </div>
+      <button id="next-button">Next</button>
+      <button id="reset-button">Reset</button>
+      <div id="generation-display">Generation: 0</div>
+      <div id="highscore-display">Highscore: 0</div>
+    </nav>
 
     <script type="text/python" src="../src/index.py"></script>
     <script src="../src/index.js"></script>
