@@ -7,21 +7,21 @@ let panning = false,
   drawing = false,
   deleting = false,
   running = true,
-  runningButtonOn = false,
+  startButtonOn = false,
   start = { x: 0, y: 0 };
 
 let lineWidth = 2,
   gridHeight = 400,
   gridWidth = 400,
   borderWidth = 1,
-  borderColor;
+  borderColor = "black";
 
 let scale = 1,
   minScale = 0.7,
   maxScale = 400,
   hideLineScaleMax = 3;
 
-const colorLines = "#666",
+const colorLines = "#333",
   colorSquares = "#000";
 
 const dragButton = 0,
@@ -30,6 +30,8 @@ const dragButton = 0,
 ctx.lineWidth = lineWidth;
 ctx.strokeStyle = colorLines;
 ctx.fillStyle = colorSquares;
+
+canvas.style.border = `${borderWidth}px solid ${borderColor}`;
 
 let fields = [];
 for (let i = 0; i < gridHeight; i++) {
@@ -94,10 +96,14 @@ function setTransform() {
 }
 
 function getFieldCoords(e) {
-  mouseX = e.clientX - pointX;
-  mouseY = e.clientY - pointY;
-  let x = Math.floor(mouseX / ((canvas.offsetWidth / gridWidth) * scale));
-  let y = Math.floor(mouseY / ((canvas.offsetHeight / gridHeight) * scale));
+  mouseX = e.clientX - pointX - scale * borderWidth;
+  mouseY = e.clientY - pointY - scale * borderWidth;
+  let x = Math.floor(
+    mouseX / (((canvas.offsetWidth - 2 * borderWidth) * scale) / gridWidth)
+  );
+  let y = Math.floor(
+    mouseY / (((canvas.offsetHeight - 2 * borderWidth) * scale) / gridHeight)
+  );
   return { y: y, x: x };
 }
 
@@ -127,7 +133,7 @@ function sendPythonData(y, x) {
 }
 
 function gameLoop() {
-  if (runningButtonOn && running) {
+  if (startButtonOn && running) {
     let data = JSON.parse(window.getDataFromPython());
     let coords_dead = data.coords_dead;
     let coords_alive = data.coords_alive;
@@ -143,7 +149,15 @@ function gameLoop() {
 
 setTransform();
 
-startButton.onclick = () => (runningButtonOn = runningButtonOn ? false : true);
+startButton.onclick = () => {
+  if (startButtonOn) {
+    startButton.innerText = "Start";
+    startButtonOn = false;
+  } else {
+    startButton.innerText = "Stop";
+    startButtonOn = true;
+  }
+};
 
 canvas.addEventListener("contextmenu", function (event) {
   event.preventDefault();
@@ -165,7 +179,7 @@ canvas.onmousedown = function (e) {
       deleting = true;
       drawOrDeleteRectAt(y, x, false);
     }
-    console.log(running, runningButtonOn, drawing, deleting);
+    console.log(running, startButtonOn, drawing, deleting);
     sendPythonData(y, x);
   }
 };

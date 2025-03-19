@@ -6,8 +6,8 @@ def getDataFromJs(data):
 
 def sendDataToJs():
     data = window.JSON.stringify({
-        "coords_dead": [[window.Math.floor(window.Math.random() * 400),window.Math.floor(window.Math.random() * 400)]],
-        "coords_alive": [[window.Math.floor(window.Math.random() * 400),window.Math.floor(window.Math.random() * 400)]]
+        "coords_dead": [[window.Math.floor(window.Math.random() * 30),window.Math.floor(window.Math.random() * 30)]],
+        "coords_alive": [[window.Math.floor(window.Math.random() * 30),window.Math.floor(window.Math.random() * 30)]]
     })
     return data
     

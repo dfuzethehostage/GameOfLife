@@ -7,7 +7,7 @@ body {
 
 .canvas-container {
   width: 95vw;
-  height: 90vh;
+  height: 85vh;
   overflow: hidden;
   border: 1px solid black;
   display: flex;
@@ -29,7 +29,13 @@ body {
 #task-bar {
   display: flex;
   width: 95vw;
-  height: 5vh;
+  height: 10vh;
   align-items: center;
   justify-content: center;
+}
+
+#start-button {
+  width: 10%;
+  height: 50%;
+  font-size: 1.5em;
 }
