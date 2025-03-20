@@ -6,7 +6,8 @@ const nextButton = document.getElementById("next-button");
 const resetButton = document.getElementById("reset-button");
 const generationDisplay = document.getElementById("generation-display");
 const highscoreDisplay = document.getElementById("highscore-display");
-const speedRange = document.getElementById("speedRange")
+const speedRange = document.getElementById("speed-range");
+const speedLabel = document.getElementById("speed-label");
 
 // Status Variablen
 
@@ -15,7 +16,7 @@ let panning = false,
   deleting = false,
   running = true,
   startButtonOn = false,
-  runningSpeed,
+  runningSpeed = 1,
   start = { x: 0, y: 0 };
 
 // Darstellungs Einstellungen
@@ -163,7 +164,6 @@ function gameLoop() {
     generationDisplay.innerText = `Generation: ${generation}`;
     highscoreDisplay.innerText = `Highscore: ${highscore}`;
   }
-  requestAnimationFrame(gameLoop);
 }
 
 setTransform();
@@ -214,6 +214,8 @@ nextButton.onclick = () => {
 
 speedRange.addEventListener("input", () => {
   runningSpeed = speedRange.value;
+  speedLabel.innerText = `${runningSpeed} Generationen pro Sekunde`
+  setGameloopSpeed(runningSpeed);
 })
 
 canvas.addEventListener("contextmenu", function (event) {
@@ -295,6 +297,18 @@ window.onwheel = function (e) {
   setTransform();
 };
 
-setInterval(() => {
-  if (startButtonOn && running) gameLoop();
-}, 1/runningSpeed);
+let gameLoopInterval;
+function startGameloop(speed){
+  gameLoopInterval = setInterval(() => {
+    if (startButtonOn && running) gameLoop();
+  }, 1000/speed);
+}
+function setGameloopSpeed(speed){
+  clearInterval(gameLoopInterval);
+  gameLoopInterval = setInterval(() => {
+    if (startButtonOn && running) gameLoop();
+  }, 1000/speed);
+}
+
+startGameloop(runningSpeed);
+

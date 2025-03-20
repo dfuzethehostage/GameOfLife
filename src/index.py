@@ -10,21 +10,11 @@ class GameState:
     def __init__(self):
         self.live_cells = set()  # Use a set to store live cells
         self.last_update = time.time()
-        self.update_interval = 0.2  # Update every 200ms
         self.generation = 0  # Track the current generation
         self.highscore = 0   # Track the highest generation reached
 
     def update(self):
         """Calculate the next generation of the grid."""
-        current_time = time.time()
-        if current_time - self.last_update < self.update_interval:
-            return {
-                "coords_dead": [],
-                "coords_alive": [],
-                "generation": self.generation,
-                "highscore": self.highscore
-            }
-
         # Track changes
         new_live_cells = set()
         cells_to_check = self.get_cells_to_check()
@@ -48,7 +38,6 @@ class GameState:
         self.generation += 1
         if self.generation > self.highscore:
             self.highscore = self.generation
-        self.last_update = current_time
 
         return {
             "coords_dead": list(coords_dead),

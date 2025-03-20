@@ -13,16 +13,17 @@
       <canvas id="canvas"></canvas>
     </div>
     <div id="task-bar">
-      <button id="start-button">Start</button>
-      <button id="next-button">Next</button>
-      <button id="reset-button">Reset</button>
-      <div id="generation-display">Generation: 0</div>
-      <div id="highscore-display">Highscore: 0</div>
+      <button id="start-button" class="task-bar-item">Start</button>
+      <button id="next-button" class="task-bar-item">Next</button>
+      <button id="reset-button" class="task-bar-item">Reset</button>
+      <div id="generation-display" class="task-bar-item">Generation: 0</div>
+      <div id="highscore-display" class="task-bar-item">Highscore: 0</div>
+      <input id="speed-range" class="task-bar-item" type="range" 
+      min="1" max="15" value="1">
+      <label for="speed-range" id="speed-label">1 Generating pro Sekunde</label>
     </nav>
 
     <script type="text/python" src="../src/index.py"></script>
     <script src="../src/index.js"></script>
-    <input id="speedRange" type="range" 
-    min="1" max="10" value="1">
   </body>
 </html>
