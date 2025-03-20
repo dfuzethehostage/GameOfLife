@@ -14,25 +14,24 @@ let panning = false,
   drawing = false,
   deleting = false,
   running = true,
-  runningButtonOn = false,
-  runningSpeed = 1,
+  startButtonOn = false,
+  runningSpeed,
   start = { x: 0, y: 0 };
-
 
 // Darstellungs Einstellungen
 
 let lineWidth = 2,
-  gridHeight = 300,
-  gridWidth = 300,
-  borderWidth = 1,
-  borderColor;
+  gridHeight = 100,
+  gridWidth = 100,
+  borderWidth = 0,
+  borderColor = "black";
 
 let scale = 1,
   minScale = 0.7,
   maxScale = 40,
   hideLineScaleMax = 3;
 
-const colorLines = "#666",
+const colorLines = "#333",
   colorSquares = "#000";
 
 const dragButton = 0,
@@ -65,14 +64,13 @@ canvas.height = canvas.height - (canvas.height % gridHeight);
 canvas.style.width = canvas.width + "px";
 canvas.style.height = canvas.height + "px";
 
-canvas.height *= 5;
-canvas.width *= 5;
+canvas.height *= 1;
+canvas.width *= 1;
 
 let cellSize = canvas.height / gridHeight;
 
 let pointX = canvas.offsetLeft,
   pointY = canvas.offsetTop;
-
 
 // Zeichne das Grid
 
@@ -108,10 +106,14 @@ function setTransform() {
 }
 
 function getFieldCoords(e) {
-  mouseX = e.clientX - pointX;
-  mouseY = e.clientY - pointY;
-  let x = Math.floor(mouseX / ((canvas.offsetWidth / gridWidth) * scale));
-  let y = Math.floor(mouseY / ((canvas.offsetHeight / gridHeight) * scale));
+  let mouseX = e.clientX - pointX - scale * borderWidth;
+  let mouseY = e.clientY - pointY - scale * borderWidth;
+  let x = Math.floor(
+    mouseX / (((canvas.offsetWidth - 2 * borderWidth) * scale) / gridWidth)
+  );
+  let y = Math.floor(
+    mouseY / (((canvas.offsetHeight - 2 * borderWidth) * scale) / gridHeight)
+  );
   return { y: y, x: x };
 }
 
@@ -143,7 +145,7 @@ function sendPythonData(y, x, draw) {
 }
 
 function gameLoop() {
-  if (runningButtonOn && running) {
+  if (startButtonOn && running) {
     let data = JSON.parse(window.getDataFromPython());
     let coords_dead = data.coords_dead;
     let coords_alive = data.coords_alive;
@@ -167,11 +169,11 @@ function gameLoop() {
 setTransform();
 
 startButton.onclick = () => {
-  if (runningButtonOn) {
-    runningButtonOn = false;
+  if (startButtonOn) {
+    startButtonOn = false;
     startButton.innerText = "Start";
   } else {
-    runningButtonOn = true;
+    startButtonOn = true;
     startButton.innerText = "Stop";
   }
 };
@@ -184,7 +186,7 @@ resetButton.onclick = () => {
   for (let y = 0; y < gridHeight; y++) {
     for (let x = 0; x < gridWidth; x++) {
       if (fields[y][x] === 1) {
-        drawOrDeleteRectAt(y, x, false);  // Clear the cell
+        drawOrDeleteRectAt(y, x, false); // Clear the cell
       }
     }
   }
@@ -195,7 +197,8 @@ resetButton.onclick = () => {
 };
 
 nextButton.onclick = () => {
-  if (!runningButtonOn) {  // Only allow stepping if the game is paused
+  if (!startButtonOn) {
+    // Only allow stepping if the game is paused
     const data = JSON.parse(window.getDataFromPython());
     const { coords_dead, coords_alive, generation, highscore } = data;
 
@@ -210,7 +213,7 @@ nextButton.onclick = () => {
 };
 
 speedRange.addEventListener("input", () => {
-  runningSpeed = speedRange.value
+  runningSpeed = speedRange.value;
 })
 
 canvas.addEventListener("contextmenu", function (event) {
@@ -233,7 +236,6 @@ canvas.onmousedown = function (e) {
       deleting = true;
       drawOrDeleteRectAt(y, x, false);
     }
-    console.log(running, runningButtonOn, drawing, deleting);
   }
 };
 
@@ -277,17 +279,14 @@ window.onwheel = function (e) {
       scale /= 1.1;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawAllRects();
-    }
-    else scale /= 1.1;
-    
+    } else scale /= 1.1;
   } else if (delta > 0 && scale <= maxScale) {
     if (scale < hideLineScaleMax && scale * 1.1 > hideLineScaleMax) {
       scale *= 1.1;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawGrid();
       drawAllRects();
-    }
-    else scale *= 1.1;
+    } else scale *= 1.1;
   }
 
   pointX = e.clientX - xs * scale;
@@ -297,5 +296,5 @@ window.onwheel = function (e) {
 };
 
 setInterval(() => {
-  if (runningButtonOn && running) gameLoop();
+  if (startButtonOn && running) gameLoop();
 }, 1/runningSpeed);

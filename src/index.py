@@ -2,8 +2,8 @@ from browser import window
 import time
 
 # Configuration
-GRID_WIDTH = 300
-GRID_HEIGHT = 300
+GRID_WIDTH = 100
+GRID_HEIGHT = 100
 CELL_SIZE = 10
 
 class GameState:
