@@ -37,6 +37,7 @@ body {
 
 
 .task-bar-item {
+  
   width: 10%;
   height: 50%;
   font-size: 1.5em;
@@ -44,3 +45,10 @@ body {
   align-items: center;
   justify-content: center;
 }
+
+button {
+  background-color: #012c5a;
+  color: white;
+}
+
+
