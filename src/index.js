@@ -6,6 +6,7 @@ const nextButton = document.getElementById("next-button");
 const resetButton = document.getElementById("reset-button");
 const generationDisplay = document.getElementById("generation-display");
 const highscoreDisplay = document.getElementById("highscore-display");
+const speedRange = document.getElementById("speedRange")
 
 // Status Variablen
 
@@ -14,6 +15,7 @@ let panning = false,
   deleting = false,
   running = true,
   runningButtonOn = false,
+  runningSpeed = 1,
   start = { x: 0, y: 0 };
 
 
@@ -52,6 +54,8 @@ for (let i = 0; i < gridHeight; i++) {
 }
 
 // Setze Canvas-Größe
+speedRange.value = runningSpeed;
+
 canvas.height = container.clientHeight;
 canvas.width = container.clientHeight * (gridWidth / gridHeight);
 
@@ -205,6 +209,10 @@ nextButton.onclick = () => {
   }
 };
 
+speedRange.addEventListener("input", () => {
+  runningSpeed = speedRange.value
+})
+
 canvas.addEventListener("contextmenu", function (event) {
   event.preventDefault();
 });
@@ -290,4 +298,4 @@ window.onwheel = function (e) {
 
 setInterval(() => {
   if (runningButtonOn && running) gameLoop();
-}, 100);
+}, 1/runningSpeed);
